@@ -3,6 +3,8 @@
  * This is a private, local scoring system, not real crowd-sourced rarity data.
  * Matching uses case-insensitive substring checks; keep accepted phrases distinctive.
  */
+const diver = document.getElementById("diver");
+const boat = document.getElementById("boat");
 
 const QUESTIONS = [
   {
@@ -110,6 +112,8 @@ let totalScore = 0;
 let timerInterval = null;
 let secondsLeft = SECONDS_PER_QUESTION;
 let answered = false;
+const depthMeter =
+  document.getElementById("depth-meter");
 
 function showScreen(name) {
   Object.values(screens).forEach(screen => screen.classList.remove("active"));
@@ -124,7 +128,10 @@ function showScreen(name) {
     document.body.classList.remove("depth-1", "depth-2", "depth-3", "depth-4", "depth-5", "depth-6", "depth-7");
     if (index > 0) document.body.classList.add(`depth-${Math.min(index, 7)}`);
     document.body.classList.toggle("deep-dive", index >= 3);
-  }
+    const metres = Math.round(index * 100);
+    depthMeter.textContent =
+    `${metres}m`;
+}
 
     function playDiveAnimation(score, questionNumber, onComplete) {
     if (diveInProgress) return;
@@ -149,12 +156,25 @@ function showScreen(name) {
   }
 
 function startGame() {
+
   questionIndex = 0;
   totalScore = 0;
+
   clearInterval(timerInterval);
+
   document.body.classList.remove("deep-dive");
+
   setDepth(0);
-  showQuestion();
+  screens.intro.classList.remove("active");
+
+  diver.classList.add("diving");
+
+  setTimeout(() => {
+
+    showQuestion();
+
+  }, 1800);
+
 }
 
 function showQuestion() {
