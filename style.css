@@ -104,3 +104,68 @@ body.deep-dive .bubble { opacity: .75; }
   .depth-pill { font-size: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+
+/* --- Cinematic answer-to-depth dive --- */
+body { transition: background 1.1s ease; }
+.ocean { transition: filter 1.2s ease, transform 1.2s ease; }
+.dive-overlay {
+  position: fixed; inset: 0; z-index: 20; display: flex;
+  align-items: center; justify-content: center; flex-direction: column;
+  overflow: hidden; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 20%, rgba(77,170,224,.2), rgba(2,8,28,.96) 75%);
+  transition: opacity .35s ease;
+}
+.dive-overlay.active { opacity: 1; }
+.dive-light {
+  position: absolute; top: -30%; left: 15%; width: 70%; height: 70%;
+  background: linear-gradient(180deg, rgba(173,241,255,.25), transparent);
+  filter: blur(25px); transform: perspective(250px) rotateX(12deg);
+  opacity: .8; transition: opacity 1.3s ease, transform 1.3s ease;
+}
+.dive-overlay.descending .dive-light { opacity: .08; transform: translateY(-120px) scale(.6); }
+.dive-rush {
+  position: absolute; inset: -20%;
+  background-image:
+    radial-gradient(2px 16px at 12% 22%, rgba(198,244,255,.8) 0%, transparent 100%),
+    radial-gradient(2px 22px at 35% 66%, rgba(198,244,255,.65) 0%, transparent 100%),
+    radial-gradient(1px 13px at 62% 31%, rgba(198,244,255,.8) 0%, transparent 100%),
+    radial-gradient(2px 20px at 82% 74%, rgba(198,244,255,.65) 0%, transparent 100%),
+    radial-gradient(1px 15px at 73% 15%, rgba(198,244,255,.7) 0%, transparent 100%);
+  opacity: 0; transform: translateY(-15%);
+}
+.dive-overlay.active .rush-one { animation: rushDown .85s ease-in both; }
+.dive-overlay.active .rush-two { animation: rushDown 1s .08s ease-in both; }
+.dive-depth-readout {
+  z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center; text-shadow: 0 3px 25px rgba(0,0,0,.65);
+  transform: translateY(12px); opacity: 0;
+}
+.dive-overlay.active .dive-depth-readout { animation: readoutIn .5s .22s ease-out forwards; }
+.dive-small-label { color: #a9e8f4; font-size: 10px; font-weight: 700; letter-spacing: .24em; }
+.dive-depth-readout strong {
+  font-family: 'Playfair Display', Georgia, serif; font-weight: 500;
+  color: #f5fcff; font-size: clamp(54px, 12vw, 88px); line-height: 1;
+}
+.dive-depth-readout > span:last-child { color: #c0d7ee; font-size: 10px; letter-spacing: .2em; }
+@keyframes rushDown {
+  0% { opacity: 0; transform: translateY(-18%) scale(1); }
+  20% { opacity: .9; }
+  100% { opacity: 0; transform: translateY(30%) scale(1.18); }
+}
+@keyframes readoutIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+body.depth-1 { background: radial-gradient(ellipse at 50% 0%, #174b83, #071d46 80%); }
+body.depth-2 { background: radial-gradient(ellipse at 50% 20%, #103b6a, #061733 78%); }
+body.depth-3 { background: radial-gradient(ellipse at 50% 35%, #0c2b55, #030e25 80%); }
+body.depth-4 { background: radial-gradient(ellipse at 50% 45%, #082347, #020a1d 80%); }
+body.depth-5 { background: radial-gradient(ellipse at 50% 50%, #071b39, #010714 80%); }
+body.depth-6 { background: radial-gradient(ellipse at 50% 55%, #08172f, #010510 80%); }
+body.depth-7 { background: radial-gradient(ellipse at 50% 60%, #10244a, #020612 80%); }
+body.depth-3 .stars, body.depth-4 .stars, body.depth-5 .stars,
+body.depth-6 .stars, body.depth-7 .stars { opacity: .16; }
+body.depth-4 .bubble, body.depth-5 .bubble, body.depth-6 .bubble { border-color: rgba(150,211,255,.4); }
+@media (prefers-reduced-motion: reduce) {
+  .dive-overlay.active .rush-one, .dive-overlay.active .rush-two,
+  .dive-overlay.active .dive-depth-readout { animation-duration: .01ms; }
+}

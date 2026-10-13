@@ -101,7 +101,10 @@ const answerInput = document.getElementById("answer-input");
 const submitButton = document.getElementById("submit-button");
 const nextButton = document.getElementById("next-button");
 const replayButton = document.getElementById("replay-button");
-
+  const diveOverlay = document.getElementById("dive-overlay");
+  const diveDepthNumber = document.getElementById("dive-depth-number");
+  const diveDepthCaption = document.getElementById("dive-depth-caption");
+  let diveInProgress = false;
 let questionIndex = 0;
 let totalScore = 0;
 let timerInterval = null;
@@ -114,11 +117,36 @@ function showScreen(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function setDepth(index) {
-  const depth = ["SURFACE LEVEL", "SUNLIT ZONE", "BLUE WATER", "THE TWILIGHT ZONE", "THE DEEP", "ABYSSAL ZONE", "HIDDEN GARDEN", "OCEAN HEART"];
-  document.getElementById("depth-label").textContent = depth[Math.min(index, depth.length - 1)];
-  document.body.classList.toggle("deep-dive", index >= 3);
-}
+  function setDepth(index) {
+    const depth = ["SURFACE LEVEL", "SUNLIT ZONE", "BLUE WATER", "THE TWILIGHT ZONE",
+      "THE DEEP", "ABYSSAL ZONE", "HIDDEN GARDEN", "OCEAN HEART"];
+    document.getElementById("depth-label").textContent = depth[Math.min(index, depth.length - 1)];
+    document.body.classList.remove("depth-1", "depth-2", "depth-3", "depth-4", "depth-5", "depth-6", "depth-7");
+    if (index > 0) document.body.classList.add(`depth-${Math.min(index, 7)}`);
+    document.body.classList.toggle("deep-dive", index >= 3);
+  }
+
+    function playDiveAnimation(score, questionNumber, onComplete) {
+    if (diveInProgress) return;
+    diveInProgress = true;
+    const depthMetres = Math.round((score / (QUESTIONS.length * 100)) * 700);
+    const captions = ["THE SUNLIT ZONE", "BLUE WATER", "THE TWILIGHT ZONE",
+      "THE DEEP", "ABYSSAL ZONE", "HIDDEN GARDEN", "OCEAN HEART"];
+    diveDepthNumber.textContent = `${depthMetres} m`;
+    diveDepthCaption.textContent = captions[Math.min(questionNumber - 1, captions.length - 1)];
+    diveOverlay.classList.remove("active", "descending");
+    // Restart CSS animation reliably.
+    void diveOverlay.offsetWidth;
+    diveOverlay.classList.add("active");
+    document.body.classList.add("diving-now");
+    window.setTimeout(() => diveOverlay.classList.add("descending"), 90);
+    window.setTimeout(() => {
+      diveOverlay.classList.remove("active", "descending");
+      diveInProgress = false;
+      document.body.classList.remove("diving-now");
+      onComplete();
+    }, 1450);
+  }
 
 function startGame() {
   questionIndex = 0;
@@ -185,9 +213,11 @@ function lockAnswer(timedOut = false) {
   if (tierKey === "krillion") badge.classList.add("tier-krillion");
   document.getElementById("tier-copy").textContent = tier.copy;
   document.getElementById("score-value").textContent = totalScore;
-  setDepth(questionIndex + 1);
   nextButton.innerHTML = questionIndex === QUESTIONS.length - 1 ? 'See your results <span>♡</span>' : 'Keep diving <span>↓</span>';
-  showScreen("reveal");
+  playDiveAnimation(totalScore, questionIndex + 1, () => {
+    setDepth(questionIndex + 1);
+    showScreen("reveal");
+  });
 }
 
 function finishGame() {
@@ -211,7 +241,7 @@ answerInput.addEventListener("input", () => {
 nextButton.addEventListener("click", () => {
   if (questionIndex < QUESTIONS.length - 1) {
     questionIndex += 1;
-    showQuestion();
+    playDiveAnimation(QUESTIONS[questionIndex - 1] ? TIERS.rare.points : 0, questionIndex + 1, showQuestion);
   } else {
     finishGame();
   }
