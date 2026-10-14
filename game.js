@@ -25,7 +25,7 @@ targetDepth=0;
 app.innerHTML=`<section class="home">
 <div class="masthead">
 <h1>LOVE DIVE</h1>
-<div class="subtitle">I made something for you Harin.</div>
+<div class="subtitle">A gift for you Harin ❤️ .</div>
 <p class="home-description">Seven questions. Seven little trips down memory lane.</p>
 <div class="desc">7 QUESTIONS · 25 SECONDS EACH · RARER ANSWERS DIVE DEEPER</div>
 </div>
