@@ -1,0 +1,676 @@
+from pathlib import Path
+import shutil
+
+path = Path("/workspaces/games/testgame.html")
+
+if not path.is_file():
+    raise FileNotFoundError(f"HTML file not found: {path}")
+
+source = path.read_text(encoding="utf-8")
+original_source = source
+
+
+def replace_once(old, new, required=True):
+    global source
+
+    if old not in source:
+        if required:
+            raise ValueError(
+                f"Could not find expected text:\n{old[:180]!r}"
+            )
+        print(f"Notice: skipped missing text: {old[:100]!r}")
+        return
+
+    source = source.replace(old, new, 1)
+
+
+def replace_between(start, end, replacement):
+    global source
+
+    a = source.find(start)
+    if a == -1:
+        raise ValueError(f"Start marker not found: {start!r}")
+
+    b = source.find(end, a + len(start))
+    if b == -1:
+        raise ValueError(f"End marker not found: {end!r}")
+
+    source = source[:a] + replacement + source[b:]
+
+
+# 1. Page title and branding
+replace_once(
+    "<title>love dive • Custom descent</title>",
+    "<title>LOVE DIVE</title>",
+)
+
+replace_once(
+    '<div id="scanlines" aria-hidden="true"></div>',
+    "",
+    required=False,
+)
+
+replace_once(
+    '<div class="brand">DEEP<span> DIVE</span></div>',
+    '<div class="brand">LOVE DIVE</div>',
+)
+
+replace_once(
+    '<div class="footer">CUSTOM TRIVIA · ENTIRELY OFFLINE · '
+    '<button id="creditsBtn">ABOUT / CREDITS</button></div>',
+    "",
+    required=False,
+)
+
+replace_once(
+    "title:'Below the obvious',"
+    "description:'Seven little trips down memory lane.'",
+    "title:'LOVE DIVE',"
+    "description:'Seven questions. Seven little trips down memory lane.'",
+    required=False,
+)
+
+
+# 2. Replace the home screen
+home_code = r"""function home(){
+stop();
+if(run&&run.phase!=='done')run.phase='abandoned';
+setScreen('home');
+targetDepth=0;
+app.innerHTML=`<section class="home">
+<div class="masthead">
+<h1>LOVE DIVE</h1>
+<div class="subtitle">I made something for you.</div>
+<p class="home-description">Seven questions. Seven little trips down memory lane.</p>
+<div class="desc">7 QUESTIONS · 25 SECONDS EACH · RARER ANSWERS DIVE DEEPER</div>
+</div>
+<div class="launch-pad">
+<button class="primary begin" id="start">START THE DIVE</button>
+</div>
+</section>`;
+$('#start').onclick=start;
+}
+
+"""
+
+replace_between("function home(){", "function help(){", home_code)
+
+
+# 3. Remove the help screen and old credits handler
+help_start = source.find("function help(){")
+
+if help_start != -1:
+    download_start = source.find("function download(", help_start)
+
+    if download_start != -1:
+        source = source[:help_start] + source[download_start:]
+    else:
+        print("Notice: download() not found; help section retained.")
+
+credits_start = source.find("$('#creditsBtn').onclick=")
+
+if credits_start != -1:
+    renderer_marker = source.find("// Pixel ocean renderer.", credits_start)
+
+    if renderer_marker != -1:
+        source = source[:credits_start] + source[renderer_marker:]
+
+
+# 4. Track when the dive starts
+replace_once(
+    "function start(){stop();run=",
+    "function start(){stop();diveStartedAt=performance.now();run=",
+    required=False,
+)
+
+
+# 5. Locate the original renderer
+renderer_start = source.find("// Pixel ocean renderer.")
+
+if renderer_start == -1:
+    raise ValueError(
+        "Cannot find '// Pixel ocean renderer.'. "
+        "The HTML may already have been modified."
+    )
+
+end_markers = [
+    "requestAnimationFrame(frame);requestAnimationFrame(frame);home();",
+    "requestAnimationFrame(frame); requestAnimationFrame(frame); home();",
+    "requestAnimationFrame(frame);home();",
+    "requestAnimationFrame(frame); home();",
+]
+
+renderer_end = -1
+
+for marker in end_markers:
+    pos = source.find(marker, renderer_start)
+    if pos != -1:
+        renderer_end = pos + len(marker)
+        break
+
+if renderer_end == -1:
+    print("Could not locate the renderer ending.")
+    print(source[renderer_start:renderer_start + 2500])
+    raise ValueError(
+        "Renderer boundary not found. No changes have been saved."
+    )
+
+
+# 6. New animated ocean renderer
+renderer = r"""
+// LOVE DIVE: animated ocean and scuba diver.
+const canvas = $('#ocean');
+const c = canvas.getContext('2d');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let w = innerWidth;
+let h = innerHeight;
+let sceneTime = 0;
+let last = 0;
+let surfaceY = 0;
+let diveStartedAt = 0;
+let visualDepth = 0;
+
+function resize(){
+    w = innerWidth;
+    h = innerHeight;
+
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (!surfaceY) surfaceY = h * .52;
+}
+
+window.addEventListener('resize', resize);
+resize();
+
+function polygon(points, fill){
+    c.beginPath();
+
+    points.forEach(([x, y], i) => {
+        if (i === 0) c.moveTo(x, y);
+        else c.lineTo(x, y);
+    });
+
+    c.closePath();
+    c.fillStyle = fill;
+    c.fill();
+}
+
+function drawBoat(x, y, t){
+    c.save();
+    c.translate(x, y + (reduced ? 0 : Math.sin(t * .001) * 2));
+
+    polygon(
+        [[-48,0],[48,0],[32,13],[-32,13]],
+        '#173e50'
+    );
+
+    c.strokeStyle = '#e8f2ed';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(-47, 2);
+    c.quadraticCurveTo(0, 17, 47, 2);
+    c.stroke();
+
+    c.strokeStyle = '#f5f3e9';
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(0, -67);
+    c.stroke();
+
+    polygon([[4,-62],[4,-8],[39,-8]], '#fff9ee');
+    polygon([[-4,-52],[-4,-9],[-34,-9]], '#e9b9ad');
+
+    c.restore();
+}
+
+function drawDiver(x, y, angle, scale, t){
+    c.save();
+    c.translate(x, y);
+    c.rotate(angle);
+    c.scale(scale, scale);
+
+    // Oxygen tank
+    c.fillStyle = '#e4b878';
+    c.beginPath();
+    c.roundRect(-19, -13, 15, 26, 6);
+    c.fill();
+
+    // Body
+    c.fillStyle = '#f0c5b2';
+    c.beginPath();
+    c.ellipse(2, 0, 20, 9, 0, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = '#28556b';
+    c.beginPath();
+    c.ellipse(3, 0, 15, 7, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Arms and legs
+    c.strokeStyle = '#f0c5b2';
+    c.lineWidth = 5;
+    c.lineCap = 'round';
+
+    c.beginPath();
+    c.moveTo(6, -4);
+    c.quadraticCurveTo(17, -16, 27, -12);
+    c.stroke();
+
+    c.beginPath();
+    c.moveTo(7, 4);
+    c.quadraticCurveTo(18, 14, 27, 10);
+    c.stroke();
+
+    c.beginPath();
+    c.moveTo(-7, -5);
+    c.lineTo(-24, -15);
+    c.stroke();
+
+    c.beginPath();
+    c.moveTo(-7, 5);
+    c.lineTo(-24, 15);
+    c.stroke();
+
+    // Fins
+    polygon([[-22,-15],[-35,-20],[-31,-10],[-23,-8]], '#79bbc2');
+    polygon([[-22,15],[-35,20],[-31,10],[-23,8]], '#79bbc2');
+
+    // Head and mask
+    c.fillStyle = '#e7b69e';
+    c.beginPath();
+    c.arc(24, 0, 10, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = '#8ed0d4';
+    c.beginPath();
+    c.roundRect(26, -7, 11, 8, 3);
+    c.fill();
+
+    c.strokeStyle = '#f7eee0';
+    c.lineWidth = 2;
+    c.strokeRect(27, -6, 9, 6);
+
+    // Bubbles
+    c.strokeStyle = 'rgba(221,250,247,.8)';
+    c.lineWidth = 1.5;
+
+    for (let i = 0; i < 3; i++){
+        const bx = 35 + (
+            reduced ? 0 : Math.sin(t * .003 + i) * 3
+        );
+
+        const by = -15 - i * 9 - (
+            reduced ? 0 : (t * .012) % 8
+        );
+
+        c.beginPath();
+        c.arc(bx, by, 2 + i * .5, 0, Math.PI * 2);
+        c.stroke();
+    }
+
+    c.restore();
+}
+
+function draw(t){
+    const dt = Math.min(40, t - last || 16);
+    last = t;
+
+    if (!reduced) sceneTime += dt;
+
+    const target = typeof targetDepth === 'number'
+        ? targetDepth
+        : 0;
+
+    visualDepth += (
+        target - visualDepth
+    ) * (reduced ? 1 : .035);
+
+    if (Math.abs(target - visualDepth) < .1){
+        visualDepth = target;
+    }
+
+    const desired = screen === 'home'
+        ? h * .52
+        : screen === 'results'
+            ? h * .36
+            : h * .22 - Math.min(visualDepth, 20000) * .0035;
+
+    surfaceY += (desired - surfaceY) * (reduced ? 1 : .045);
+
+    const deep = Math.min(1, visualDepth / 6500);
+    const sea = c.createLinearGradient(0, 0, 0, h);
+
+    sea.addColorStop(
+        0,
+        `rgb(${Math.round(28-deep*18)},${Math.round(105-deep*70)},${Math.round(132-deep*79)})`
+    );
+
+    sea.addColorStop(
+        1,
+        `rgb(${Math.round(8-deep*5)},${Math.round(42-deep*28)},${Math.round(66-deep*38)})`
+    );
+
+    c.fillStyle = sea;
+    c.fillRect(0, 0, w, h);
+
+    // Sky
+    if (surfaceY > 0){
+        const sky = c.createLinearGradient(
+            0, 0, 0, Math.max(1, surfaceY)
+        );
+
+        sky.addColorStop(0, '#9bcbd4');
+        sky.addColorStop(1, '#edf3e9');
+
+        c.fillStyle = sky;
+        c.fillRect(0, 0, w, surfaceY + 2);
+
+        c.fillStyle = '#f5dcaa';
+        c.beginPath();
+        c.arc(w * .78, Math.max(42, surfaceY * .34), 24, 0, Math.PI * 2);
+        c.fill();
+
+        c.strokeStyle = 'rgba(244,255,250,.55)';
+        c.lineWidth = 2;
+        c.beginPath();
+
+        for (let x = 0; x <= w; x += 8){
+            const y = surfaceY + (
+                reduced ? 0 : Math.sin(x * .025 + sceneTime * .001) * 2
+            );
+
+            if (x === 0) c.moveTo(x, y);
+            else c.lineTo(x, y);
+        }
+
+        c.stroke();
+    }
+
+    const boatX = w * .25;
+    drawBoat(boatX, surfaceY, sceneTime);
+
+    let dx = w * .76;
+    let dy = surfaceY - 28;
+    let angle = 0;
+
+    if (screen === 'play'){
+        const elapsed = reduced
+            ? 2400
+            : Math.max(0, t - diveStartedAt);
+
+        const p = Math.min(1, elapsed / 2200);
+        const ease = p * p * (3 - 2 * p);
+
+        const underwaterY = Math.max(surfaceY + 65, h * .49)
+            + Math.min(visualDepth * .045, h * .32);
+
+        dx = boatX + 35 + (w * .76 - boatX - 35) * ease;
+        dy = surfaceY - 30 + (
+            underwaterY - (surfaceY - 30)
+        ) * ease;
+
+        angle = (1 - ease) * -.75
+            + (reduced ? 0 : Math.sin(p * Math.PI) * .38);
+    }
+
+    if (screen === 'results') dy = surfaceY + 12;
+    if (screen === 'home') dy = surfaceY - 28;
+
+    dy = Math.max(35, Math.min(h - 45, dy));
+
+    drawDiver(
+        dx,
+        dy,
+        angle,
+        Math.max(.72, Math.min(1, w / 900)),
+        sceneTime
+    );
+
+    const vignette = c.createLinearGradient(0, 0, 0, h);
+    vignette.addColorStop(0, 'rgba(6,25,43,0)');
+    vignette.addColorStop(1, 'rgba(4,20,37,.45)');
+
+    c.fillStyle = vignette;
+    c.fillRect(0, 0, w, h);
+
+    requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);
+home();
+"""
+
+# Replace the old renderer and everything after it.
+source = source[:renderer_start] + renderer
+
+
+# 7. Styling
+styles = r"""
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root{
+    color-scheme:dark;
+    --ink:#f6f7f4;
+    --muted:#c0d0d1;
+    --cyan:#a7d8d8;
+    --pink:#eab8a9;
+}
+
+body{
+    font-family:'DM Sans',sans-serif;
+    background:#092536;
+    color:#f6f7f4;
+    font-size:16px;
+}
+
+#scanlines{display:none}
+
+.brand{
+    font:600 15px 'DM Sans',sans-serif;
+    letter-spacing:4px;
+    color:#f6f7f4;
+    text-shadow:none;
+}
+
+button{
+    font:600 13px 'DM Sans',sans-serif;
+    letter-spacing:1.5px;
+    color:#f6f7f4;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:999px;
+    box-shadow:none;
+    padding:13px 22px;
+}
+
+button:hover{
+    background:rgba(255,255,255,.18);
+    border-color:#fff;
+}
+
+button.primary{
+    background:#f4e7d6;
+    color:#17394a;
+    border:0;
+    box-shadow:0 8px 28px #001b2b66;
+}
+
+button.primary:hover{
+    background:#fff8ed;
+    box-shadow:0 8px 32px #001b2b99;
+}
+
+.panel,.pixel-panel,.hud-box,.question-card,.reward,
+.log-question,.category-manager{
+    clip-path:none;
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:20px;
+    background:rgba(8,33,49,.82);
+    box-shadow:0 18px 60px rgba(2,18,31,.22);
+    backdrop-filter:blur(12px);
+}
+
+h1,h2,h3,.masthead h1,.results-head h1,.prompt,
+.reward .tier-name,.category-manager summary{
+    font-family:'Playfair Display',serif;
+    font-weight:500;
+    letter-spacing:0;
+}
+
+.masthead{
+    margin-top:clamp(65px,13vh,145px);
+    color:#f6f7f4;
+}
+
+.masthead h1{
+    font-size:clamp(62px,10vw,110px);
+    letter-spacing:2px;
+    color:#fff;
+    text-shadow:none;
+    margin-bottom:20px;
+}
+
+.masthead .subtitle{
+    font:400 clamp(20px,3vw,28px) 'Playfair Display',serif;
+    letter-spacing:.3px;
+    color:#f2d4c8;
+    margin:0 0 14px;
+}
+
+.home-description{
+    font:400 clamp(16px,2.1vw,20px) 'DM Sans',sans-serif;
+    color:#edf1ed;
+    margin:0 auto 22px;
+}
+
+.masthead .desc{
+    font:600 11px 'DM Sans',sans-serif;
+    letter-spacing:2px;
+    color:#c4d9d9;
+}
+
+.home{min-height:calc(100svh - 135px)}
+
+.launch-pad{
+    margin-top:auto;
+    padding-top:clamp(70px,12vh,135px);
+    width:min(420px,100%);
+}
+
+.begin{
+    width:100%;
+    font-size:13px;
+    letter-spacing:2px;
+    padding:19px 24px;
+}
+
+.eyebrow{
+    font:600 11px 'DM Sans',sans-serif;
+    letter-spacing:2px;
+    color:#eab8a9;
+}
+
+.question-card{padding:32px}
+
+.prompt{
+    font-size:clamp(28px,4vw,40px);
+    line-height:1.2;
+}
+
+.hud-box{min-height:auto;padding:14px 18px}
+
+.hud-label,.rounds{
+    font:600 10px 'DM Sans',sans-serif;
+    letter-spacing:2px;
+}
+
+.depth,.score{
+    font:500 25px 'DM Sans',sans-serif;
+    color:#b7e4df;
+}
+
+.score{color:#f0c2b1}
+
+.clock{font-family:'DM Sans',sans-serif}
+
+.answer-input{
+    font-family:'DM Sans',sans-serif;
+    border-radius:12px;
+    background:rgba(8,27,41,.9);
+}
+
+.reward .tier-name{
+    font-size:34px;
+    color:var(--tier);
+}
+
+.results-head h1{
+    font-size:clamp(38px,7vw,58px);
+    color:#e8f5ef;
+}
+
+.big-depth{
+    font-family:'DM Sans',sans-serif;
+    text-shadow:none;
+}
+
+.log-question summary:hover{
+    background:rgba(255,255,255,.08);
+}
+
+.log-number,.log-score{font-family:'DM Sans',sans-serif}
+
+.answer-filter{border-radius:10px}
+
+.reveal-category h3{font-family:'DM Sans',sans-serif}
+
+#toast{
+    font:500 14px 'DM Sans',sans-serif;
+    border-radius:12px;
+}
+
+dialog{
+    font-family:'DM Sans',sans-serif;
+    border-radius:22px;
+}
+
+dialog h2{font-family:'Playfair Display',serif}
+
+@media(max-width:760px){
+    .shell{padding:18px 18px 28px}
+    .masthead{margin-top:12vh}
+    .hud{grid-template-columns:100px 1fr 100px}
+    .launch-pad{padding-top:90px}
+    .question-card{padding:24px}
+}
+"""
+
+if "</style>" not in source:
+    raise ValueError("Could not find </style>. No changes have been saved.")
+
+source = source.replace("</style>", styles + "\n</style>", 1)
+
+
+# 8. Validate and save
+if source == original_source:
+    raise RuntimeError("No changes were made.")
+
+if "requestAnimationFrame(frame)" in source:
+    raise ValueError("Old animation loop remains. No changes have been saved.")
+
+if "function draw(t)" not in source:
+    raise ValueError("New renderer is missing.")
+
+if "requestAnimationFrame(draw);" not in source:
+    raise ValueError("New renderer initialization is missing.")
+backup = path.with_suffix(".html.bak")
+shutil.copy2(path, backup)
+path.write_text(source, encoding="utf-8")
+
+print(f"Updated: {path}")
+print(f"Backup:  {backup}")
+print("Done!")

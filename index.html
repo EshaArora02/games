@@ -1,114 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#061a40">
-  <title>Love Dive 💙</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="game.js" defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>LOVE DIVE</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="ocean" aria-hidden="true">
-      <div class="dive-overlay" id="dive-overlay" aria-hidden="true">
-    <div class="dive-light"></div>
-    <div class="dive-rush rush-one"></div>
-    <div class="dive-rush rush-two"></div>
-    <div class="dive-depth-readout">
-      <span class="dive-small-label">DESCENDING TO</span>
-      <strong id="dive-depth-number">0 m</strong>
-      <span id="dive-depth-caption">THE SUNLIT ZONE</span>
+<body data-screen="home">
+
+    <canvas id="ocean"></canvas>
+
+    <div class="shell">
+        <header>
+            <div class="brand">LOVE DIVE</div>
+
+            <!-- <div class="row">
+                <button id="homeBtn" class="quiet">
+                    ⌂ HOME
+                </button>
+            </div> -->
+        </header>
+
+        <main id="app"></main>
     </div>
-  </div>
-    <div class="stars"></div>
-    <div id="boat">
-  ⛵
-</div>
 
-<div id="diver">
-  <div class="hair"></div>
-  <div class="head"></div>
-  <div class="mask"></div>
-  <div class="body"></div>
-  <div class="arm left"></div>
-  <div class="arm right"></div>
-  <div class="leg left"></div>
-  <div class="leg right"></div>
-</div>
-<div id="depth-meter">
-  0m
-</div>
-    <div class="bubble bubble-one"></div>
-    <div class="bubble bubble-two"></div>
-    <div class="bubble bubble-three"></div>
-    <div class="fish fish-one">♡</div>
-    <div class="fish fish-two">✦</div>
-  </div>
+    <dialog id="modal">
+        <div id="modalBody"></div>
+    </dialog>
 
-  <main class="app-shell">
-    <header class="topbar">
-      <div class="brand-mark">♡ <span>LOVE DIVE</span></div>
-      <div class="depth-pill"><span class="depth-dot"></span><span id="depth-label">SURFACE LEVEL</span></div>
-    </header>
+    <div id="toast" hidden></div>
 
-    <section id="intro-screen" class="screen intro-screen active">
-      <div class="eyebrow">A LITTLE SOMETHING FOR YOU</div>
-      <div class="hero-heart" aria-hidden="true">♡</div>
-      <h1>I made<br><em>something for you.</em></h1>
-      <p class="intro-copy">Seven questions. Seven little trips down memory lane.<br>Let's see how well you know our little world.</p>
-      <div class="intro-meta"><span>7 QUESTIONS</span><span>·</span><span>25 SECONDS EACH</span></div>
-      <button id="start-button" class="primary-button">Start the dive <span>↘</span></button>
-      <p class="tiny-note">No pressure. Just us. 💙</p>
-    </section>
+    <script src="questions.js"></script>
+    <script src="game.js"></script>
 
-    <section id="question-screen" class="screen question-screen" aria-live="polite">
-      <div class="question-topline">
-        <span id="question-count">QUESTION 01 / 07</span>
-        <span class="timer-wrap"><span class="timer-icon">◷</span><span id="timer">25</span>s</span>
-      </div>
-      <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-      <div class="question-card">
-        <div class="question-symbol">✧</div>
-        <div class="eyebrow">DIVE DEEPER</div>
-        <h2 id="question-title">Name something that reminds you of us.</h2>
-        <p id="question-hint" class="question-hint">Think beyond the obvious. The more unexpected the answer, the rarer it might be.</p>
-        <form id="answer-form">
-          <label class="sr-only" for="answer-input">Your answer</label>
-          <textarea id="answer-input" maxlength="180" placeholder="The first thing that comes to mind..." rows="3" autocomplete="off"></textarea>
-          <div class="input-footer"><span>Go with your gut.</span><span id="char-count">0 / 180</span></div>
-          <button id="submit-button" class="primary-button" type="submit">Lock in answer <span>↗</span></button>
-        </form>
-      </div>
-      <p class="bottom-whisper">The deeper you go, the more personal it gets.</p>
-    </section>
-
-    <section id="reveal-screen" class="screen reveal-screen" aria-live="polite">
-      <div class="eyebrow">ANSWER LOCKED IN</div>
-      <div class="answer-orbit"><span>♡</span></div>
-      <p class="answer-label">YOUR ANSWER</p>
-      <h2 id="answer-recap">Your answer goes here</h2>
-      <div id="tier-badge" class="tier-badge">A LITTLE TOO OBVIOUS</div>
-      <p id="tier-copy" class="tier-copy">There are more layers to us than that.</p>
-      <div class="score-line"><span>YOUR DIVE SCORE</span><strong id="score-value">0</strong></div>
-      <button id="next-button" class="primary-button">Keep diving <span>↓</span></button>
-    </section>
-
-    <section id="final-screen" class="screen final-screen">
-      <div class="eyebrow">YOU MADE IT TO THE BOTTOM</div>
-      <div class="final-shell">
-        <div class="final-pearl">♡</div>
-        <h1>My favourite<br><em>kind of rare.</em></h1>
-        <p id="final-message">No matter how deep you dive, you're still my favourite person.</p>
-        <div class="final-stats">
-          <div><strong id="final-score">0</strong><span>DIVE POINTS</span></div>
-          <div><strong>07</strong><span>QUESTIONS</span></div>
-          <div><strong id="final-depth">∞</strong><span>LAYERS OF US</span></div>
-        </div>
-        <p class="signoff" id="signoff">Made with love, just for you ♡</p>
-        <button id="replay-button" class="secondary-button">Dive again ↻</button>
-      </div>
-    </section>
-  </main>
 </body>
 </html>
-
