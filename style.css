@@ -411,3 +411,12 @@ button{
     color:var(--pink);
     font-weight:700;
 }
+.results{
+    width:min(1000px,95vw);
+    margin:auto;
+    padding:120px 0 80px;
+}
+
+.results-head{
+    margin-bottom:30px;
+}
