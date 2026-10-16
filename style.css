@@ -244,6 +244,11 @@ button{
     font-size:40px;
     margin:15px 0;
 }
+.tier-icon{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+}
 
 .locked-answer{
     font-size:30px;
