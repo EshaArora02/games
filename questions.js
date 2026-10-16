@@ -300,7 +300,7 @@ const DEMO = {
             ]
         },
         {
-            text: "Nothing, you're not that funny",
+            text: "Nothing, you're not that funny x",
             category: "heart-ocean",
             aliases: [
                 "nothing, you're not that funny",
@@ -464,21 +464,34 @@ const DEMO = {
                 "when you smother me with kisses"
             ]
         },
-        {
-            text: "When you're all giddy and happy",
-            category: "coral",
-            aliases: [
-                "when you're all giddy and happy",
-                "when you are all giddy and happy",
-                "when you're giddy",
-                "when you're happy",
-                "when you get all giddy",
-                "when you're excited and happy",
-                "when you're in a good mood",
-                "when you're all smiley",
-                "when you get all happy"
-            ]
-        },
+		{
+		    text: "When you're so focused on something, you forget everything else",
+		    category: "coral",
+		    aliases: [
+		        "when you're focused",
+		        "when you're concentrating",
+		        "when you're really focused",
+		        "when you're super focused",
+		        "when you're very focused",
+		        "when you're so concentrated",
+		        "when you're in deep focus",
+		        "when you're locked in",
+		        "when you're zoned in",
+		        "when you're in the zone",
+		        "when you're absorbed in something",
+		        "when you're engrossed in something",
+		        "when you're so into something",
+		        "when you're caught up in what you're doing",
+		        "when you get lost in something",
+		        "when you forget everything around you",
+		        "when nothing else matters because you're focused",
+		        "when you can't think about anything else",
+		        "when you can't focus on anything else",
+		        "when all your attention is on one thing",
+		        "when you tune everything else out",
+		        "when you're completely immersed in something",
+		    ]
+		},
         {
             text: "When you get those laugh attacks",
             category: "rare",
@@ -668,24 +681,36 @@ const DEMO = {
                 "water everywhere when washing your hands",
                 "washing your hands messily",
             ]
-        },
-        {
-            text: "Always learning more and knowing how things work",
-            category: "rare",
-            aliases: [
-                "always learning more",
-                "knowing how things work",
-                "learning how things work",
-                "wanting to know everything",
-                "being curious",
-                "your curiosity",
-                "learning new things",
-                "understanding how things work",
-                "figuring out how things work",
-                "always wanting to learn",
-                "wanting to understand everything"
-            ]
-        },
+		{
+		    text: "Learning new things and doing them properly",
+		    category: "rare",
+		    aliases: [
+		        "learning new things",
+		        "always learning something new",
+		        "trying new things",
+		        "learning new skills",
+		        "picking up new hobbies",
+		        "trying new hobbies",
+		        "stepping out of your comfort zone",
+		        "getting out of your comfort zone",
+		        "challenging yourself",
+		        "pushing yourself to try new things",
+		        "wanting to learn how to do things properly",
+		        "learning how to do things right",
+		        "doing things properly",
+		        "wanting to get things right",
+		        "taking the time to learn properly",
+		        "getting someone to teach you",
+		        "learning from people who know what they're doing",
+		        "wanting to understand how to do things",
+		        "putting effort into learning something",
+		        "committing to learning a new skill",
+		        "always wanting to improve",
+		        "getting better at things",
+		        "learning guitar",
+		        "taking guitar lessons"
+		    ]
+		}
         {
             text: "Explaining concepts in simple ways",
             category: "treasure",
