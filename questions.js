@@ -19,7 +19,7 @@ const DEFAULT_CATEGORIES = [
     },
     {
         id:'rare',
-        name:'rare',
+        name:'Rare',
         points:60,
         color:'#ffb56b'
     },
@@ -480,7 +480,7 @@ const DEMO = {
             ]
         },
         {
-            text: "When you laugh so much you can't control yourself",
+            text: "When you get those laugh attacks",
             category: "rare",
             aliases: [
                 "when you laugh so much you can't control yourself",
@@ -640,7 +640,7 @@ const DEMO = {
             ]
         },
         {
-            text: "Making the bed",
+            text: "Making the bed in the morning",
             category: "pearl",
             aliases: [
                 "making the bed",
