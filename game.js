@@ -11,7 +11,11 @@ const category=(id,p=pack)=>p.categories.find(c=>c.id===id),pointsOf=(a,p=pack)=
 function toast(s){clearTimeout(toastTimer);$('#toast').textContent=s;$('#toast').hidden=false;toastTimer=setTimeout(()=>$('#toast').hidden=true,4500)}
 function tone(freq=440,dur=.16,delay=0,type='sine',vol=.065,end=freq){if(!sound)return;try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();ctx.resume();const o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime+delay;o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+dur)}catch{}}
 function splash(){if(!sound)return;tone(320,.55,0,'sine',.04,65);tone(620,.4,.08,'triangle',.015,110);try{if(!ctx)return;const n=ctx.createBuffer(1,ctx.sampleRate*.35,ctx.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*.18;const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();src.buffer=n;filter.type='lowpass';filter.frequency.value=700;g.gain.setValueAtTime(.45,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.35);src.connect(filter);filter.connect(g);g.connect(ctx.destination);src.start()}catch{}}
-function chime(points){const max=Math.max(1,...pack.categories.map(c=>c.points));[220,330,440,points/max>.8?880:550].forEach((f,i)=>tone(f,.4,i*.1,'triangle',.04))}
+function chime(points){
+    tone(392,.4,0,'sine',.015);
+    tone(494,.4,.2,'sine',.015);
+    tone(587,.8,.4,'sine',.015);
+}
 function stop(){clearInterval(timer);clearInterval(readTimer);timer=null;readTimer=null}
 function setScreen(s){screen=s;document.body.dataset.screen=s}
 function dialog(html){$('#modalBody').innerHTML=html;$('#modal').showModal()}
