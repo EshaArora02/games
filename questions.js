@@ -681,6 +681,7 @@ const DEMO = {
                 "water everywhere when washing your hands",
                 "washing your hands messily",
             ]
+		},
 		{
 		    text: "Learning new things and doing them properly",
 		    category: "rare",
@@ -710,7 +711,7 @@ const DEMO = {
 		        "learning guitar",
 		        "taking guitar lessons"
 		    ]
-		}
+		},
         {
             text: "Explaining concepts in simple ways",
             category: "treasure",
